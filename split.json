@@ -1,11 +1,9 @@
 {
     "items":  [
         {
-            "project": "GO-LAB",
+            "project": "EXAMPLE-PROJECT-NAME",
             "unit": "Unidad Internet",
             "concept": "I+D Desarrollo Proyecto",
-
-            "hours": 7
+            "hours": 500
         }
-    ]
 }
