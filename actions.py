@@ -1,5 +1,8 @@
+
+
 from collections import OrderedDict
 import json
+from selenium.webdriver import FirefoxProfile
 import config
 
 
@@ -23,11 +26,31 @@ class TimeoutException(Exception):
 class Action(object):
 
     def __init__(self):
-        self.driver = webdriver.Firefox()
+
+        if config.USE_HEADLESS:
+            self.driver = webdriver.PhantomJS()
+        else:
+            self.profile = FirefoxProfile()
+            self.profile.set_preference("security.tls.version.fallback-limit", 0)
+            self.profile.set_preference("security.tls.version.min", 0)
+            self.driver = webdriver.Firefox(self.profile)
+
+        self.driver.set_window_size(1600, 1200)
         self.driver.implicitly_wait(30)
 
         self.verificationErrors = []
         self.accept_next_alert = True
+
+    def _close_alert_and_get_its_text(self):
+        try:
+            alert = self.driver.switch_to_alert()
+            alert_text = alert.text
+            if self.accept_next_alert:
+                alert.accept()
+            else:
+                alert.dismiss()
+            return alert_text
+        finally: self.accept_next_alert = True
 
     def _wait_for_element_id(self, id):
         sofar = 0
@@ -41,6 +64,21 @@ class Action(object):
                     raise TimeoutException
             else:
                 break
+
+    def _wait_for_not_visible(self, id):
+        sofar = 0
+        while True:
+            try:
+                elem = self.driver.find_element_by_id(id)
+                if not elem.is_displayed():
+                    break
+                else:
+                    time.sleep(0.5)
+                    sofar += 0.5
+                    if sofar > 20:
+                        raise TimeoutException
+            except:
+                pass
 
     def is_at_home(self):
         """
@@ -104,7 +142,6 @@ class Action(object):
         driver.find_element_by_id("P6_HORAS").send_keys(hours)
         driver.find_element_by_id("B16375215916222755").click()
 
-        # Ensure we are again at the home screen.
         self.wait_for_home()
 
         print " done."
@@ -139,6 +176,10 @@ class Action(object):
         :return:
         """
 
+        total = len(entries)
+        fails = 0
+        added = 0
+
         # Remember each entry in a dict.
         i = 0
         d = OrderedDict()
@@ -150,10 +191,11 @@ class Action(object):
         for entry in entries:
             try:
                 self.add_entry(**entry)  # TO-DO: Not too pretty, improve this, add some error-tolerance.
-                i += 1
                 print "[SUCCESS] Registered entry: %r" % (entry)
+                added += 1
             except:
                 print "[FAIL] FAILED TO ADD ENTRY: %r" % (entry)
+                fails += 1
             else:
                 del d[i]
                 # Save the current remaining dictionary to disk.
@@ -161,3 +203,30 @@ class Action(object):
                 f = file(progress_file, "w")
                 f.write(raw)
                 f.close()
+            i += 1
+            print "[PROGRESS]: %d out of %d. Errors: %d" % (added, total, fails)
+
+    def remove_all_existing(self):
+        """
+        Removes every existing entry.
+        :return:
+        """
+        driver = self.driver
+
+        # This is mainly to support this function in PhantomJS (which doesn't support confirms)
+        driver.execute_script("window.confirm = function(msg) { return true; }")
+
+        # Display every single entry in one page.
+        driver.execute_script("gReport.search('SEARCH', 1000000)")
+
+        self._wait_for_not_visible("apexir_LOADER")
+
+        # Mark them all for deletion.
+        driver.execute_script("""$("input[type=checkbox]").attr("checked", "checked")""")
+
+        self._wait_for_element_id("B24879923011698259")
+        driver.find_element_by_id("B24879923011698259").click()
+
+        # self._close_alert_and_get_its_text()
+
+        self.wait_for_home()

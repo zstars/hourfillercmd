@@ -1,3 +1,9 @@
 
 DEUSTO_USERNAME = ""
 DEUSTO_PASSWORD = ""
+
+# Use PhantomJS instead of Firefox
+USE_HEADLESS = False
+
+# Remove all entries before adding new ones
+REMOVE_BEFORE_ADD = False

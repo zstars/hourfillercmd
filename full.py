@@ -1,5 +1,6 @@
 # Full script.
 from actions import Action
+import config
 
 if __name__ == "__main__":
 
@@ -14,6 +15,10 @@ if __name__ == "__main__":
 
     act = Action()
     act.login()
+
+    if config.REMOVE_BEFORE_ADD:
+        act.remove_all_existing()
+
     act.add_entries_safe(entries, "my.progress.json")
 
 

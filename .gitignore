@@ -2,3 +2,4 @@ config.py
 .idea
 *.pyc
 my.*.json
+*.log
