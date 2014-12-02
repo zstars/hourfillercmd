@@ -58,6 +58,7 @@ def split_to_entries(calendar, split):
                 item = next(items_iterator, None)
                 if item == None:
                     break
+    return entries
 
     print "ASSIGNED TOTAL HOURS: %d" % total_hours_assigned
 

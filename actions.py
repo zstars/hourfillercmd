@@ -1,3 +1,5 @@
+from collections import OrderedDict
+import json
 import config
 
 
@@ -126,3 +128,36 @@ class Action(object):
         """
         for entry in entries:
             self.add_entry(**entry)  # TO-DO: Not too pretty, improve this, add some error-tolerance.
+
+    def add_entries_safe(self, entries, progress_file):
+        """
+        Massively adds the specified entries, just like add_entries.
+        Successfully added entries are removed from the dictionary,
+        and saved to progress_file (path).
+        :param entries:
+        :param progress_file: Path to the file in which to save remaining entries.
+        :return:
+        """
+
+        # Remember each entry in a dict.
+        i = 0
+        d = OrderedDict()
+        for entry in entries:
+            d[i] = entry
+            i += 1
+
+        i = 0
+        for entry in entries:
+            try:
+                self.add_entry(**entry)  # TO-DO: Not too pretty, improve this, add some error-tolerance.
+                i += 1
+                print "[SUCCESS] Registered entry: %r" % (entry)
+            except:
+                print "[FAIL] FAILED TO ADD ENTRY: %r" % (entry)
+            else:
+                del d[i]
+                # Save the current remaining dictionary to disk.
+                raw = json.dumps({"entries": d.values()})
+                f = file(progress_file, "w")
+                f.write(raw)
+                f.close()
