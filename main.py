@@ -1,5 +1,4 @@
-
-
+import json
 from actions import Action
 
 print "Running HoursFillerCmd"
@@ -13,3 +12,9 @@ d = dict(project="GO-LAB", unit="Unidad Internet", concept="I+D Desarrollo Proye
 act.add_entry(**d)
 act.add_entry(**d)
 act.add_entry(**d)
+
+
+entries_raw = open("entries.json").read()
+entries = json.loads(entries_raw)
+
+act.add_entries(entries["entries"])

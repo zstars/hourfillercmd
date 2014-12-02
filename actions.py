@@ -106,3 +106,23 @@ class Action(object):
         self.wait_for_home()
 
         print " done."
+
+    def add_entries(self, entries):
+        """
+        Massively adds the specified entries.
+        Entries is a list of dicts.
+        Example:
+               [
+                {
+                    "project": "GO-LAB",
+                    "unit": "Unidad Internet",
+                    "concept": "I+D Desarrollo Proyecto",
+                    "date": "1/1/2014",
+                    "hours": "1"
+                }
+               ]
+        :param entries:
+        :return:
+        """
+        for entry in entries:
+            self.add_entry(**entry)  # TO-DO: Not too pretty, improve this, add some error-tolerance.
